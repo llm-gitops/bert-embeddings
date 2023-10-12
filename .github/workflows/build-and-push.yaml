@@ -40,4 +40,3 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/llm-gitops/serve/bert-serve:v1.0.0
-
