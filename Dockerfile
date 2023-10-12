@@ -25,4 +25,3 @@ COPY --from=1 /workspace/serve-bert /workspace/serve-bert
 COPY ./models/ggml-model-q4_1.bin /workspace/models/model.ggml
 
 ENTRYPOINT ["/workspace/serve-bert"]
-# CGO_LDFLAGS="-L./go-bert.cpp" go build -ldflags="-extldflags -static" -o main main.go
