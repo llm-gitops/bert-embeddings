@@ -35,7 +35,7 @@ jobs:
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           push: true
-          builder: buildx
+          builder: ${{ steps.buildx.outputs.name }}
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
