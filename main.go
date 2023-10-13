@@ -61,11 +61,15 @@ func main() {
 		fmt.Printf("Input: %+v\n", req.Input)
 
 		var inputTexts []string
-		switch req.Input.(type) {
+		switch v := req.Input.(type) {
 		case string:
 			inputTexts = []string{req.Input.(string)}
 		case []string:
 			inputTexts = req.Input.([]string)
+		case []interface{}:
+			for _, vv := range v {
+				inputTexts = append(inputTexts, vv.(string))
+			}
 		default:
 			errResp := openai.ErrorResponse{
 				Error: &openai.APIError{
