@@ -60,12 +60,17 @@ func main() {
 		fmt.Printf("Request: %+v\n", req)
 		fmt.Printf("Input: %+v\n", req.Input)
 
-		inputText, ok := req.Input.(string)
-		if !ok {
+		var inputTexts []string
+		switch req.Input.(type) {
+		case string:
+			inputTexts = []string{req.Input.(string)}
+		case []string:
+			inputTexts = req.Input.([]string)
+		default:
 			errResp := openai.ErrorResponse{
 				Error: &openai.APIError{
 					Code:           http.StatusBadRequest,
-					Message:        "input must be a string",
+					Message:        "input must be an array of string",
 					Param:          nil,
 					Type:           http.StatusText(http.StatusBadRequest),
 					HTTPStatusCode: http.StatusBadRequest,
@@ -76,32 +81,35 @@ func main() {
 			return
 		}
 
-		embeddings, err := llm.Embeddings(inputText, bert.SetThreads(runtime.NumCPU()))
-		if err != nil {
-			errResp := openai.ErrorResponse{
-				Error: &openai.APIError{
-					Code:           http.StatusInternalServerError,
-					Message:        err.Error(),
-					Param:          nil,
-					Type:           http.StatusText(http.StatusInternalServerError),
-					HTTPStatusCode: http.StatusInternalServerError,
-					InnerError:     nil,
-				},
+		data := make([]openai.Embedding, 0)
+		for i, inputText := range inputTexts {
+			embeddings, err := llm.Embeddings(inputText, bert.SetThreads(runtime.NumCPU()))
+			if err != nil {
+				errResp := openai.ErrorResponse{
+					Error: &openai.APIError{
+						Code:           http.StatusInternalServerError,
+						Message:        err.Error(),
+						Param:          nil,
+						Type:           http.StatusText(http.StatusInternalServerError),
+						HTTPStatusCode: http.StatusInternalServerError,
+						InnerError:     nil,
+					},
+				}
+				c.JSON(http.StatusInternalServerError, errResp)
+				return
 			}
-			c.JSON(http.StatusInternalServerError, errResp)
-			return
+
+			data = append(data, openai.Embedding{
+				Object:    "embedding",
+				Embedding: embeddings,
+				Index:     i,
+			})
 		}
 
 		resp := openai.EmbeddingResponse{
 			Object: "list",
-			Data: []openai.Embedding{
-				{
-					Object:    "embedding",
-					Embedding: embeddings,
-					Index:     0,
-				},
-			},
-			Model: 0,
+			Data:   data,
+			Model:  0,
 			Usage: openai.Usage{
 				PromptTokens: 0,
 				TotalTokens:  0,
