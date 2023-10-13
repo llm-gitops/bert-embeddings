@@ -56,6 +56,10 @@ func main() {
 			c.JSON(http.StatusBadRequest, errResp)
 			return
 		}
+		// DEBUG
+		fmt.Printf("Request: %+v\n", req)
+		fmt.Printf("Input: %+v\n", req.Input)
+
 		inputText, ok := req.Input.(string)
 		if !ok {
 			errResp := openai.ErrorResponse{
